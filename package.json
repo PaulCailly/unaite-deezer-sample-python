@@ -1,1 +1,1 @@
-{"name":"unaite-deezer-sample-python-player","version":"1.0.0","private":true,"scripts":{"sdk:install":"node scripts/install-sdk.mjs"},"engines":{"node":">=22.18.0"}}
+{"name":"unaite-deezer-sample-python-player","version":"1.0.1","private":true,"scripts":{"sdk:install":"node scripts/install-sdk.mjs"},"engines":{"node":">=22.18.0"}}

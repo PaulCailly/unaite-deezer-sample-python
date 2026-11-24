@@ -26,13 +26,34 @@ class SampleTests(unittest.TestCase):
         (self.root / 'public/index.html').write_text('hello')
         (self.root / '.env').write_text('SECRET=private')
         self.app = create_app({'DEEZER_CLIENT_ID': 'test-client', 'DEEZER_APP_ID': 'test-app'},
-                              transport=self.transport, now=lambda: self.now, root=self.root)
+                              transport=self.transport, media_transport=self.media_transport, now=lambda: self.now, root=self.root)
         @self.app.before_request
         def observe_request():
             from flask import request
             if request.path == getattr(self, 'observed_path', None):
                 self.request_seen.set()
         self.client = self.app.test_client()
+
+    def media_transport(self, url, byte_range):
+        self.media_calls.append((url, byte_range))
+        return 206, b'abc', {'Content-Type': 'audio/mpeg', 'Content-Range': 'bytes 0-2/100'}
+
+    def test_media_relay_authentication_allowlist_and_ranges(self):
+        self.media_calls = []
+        url = 'https://cdnt-stream.dzcdn.net/media/1/1/a/audio.mp3?hdnea=test'
+        self.assertEqual(self.post('/api/media', {'url': url}).status_code, 401)
+        self.login()
+        for bad in ['http://cdnt-stream.dzcdn.net/media/a.mp3?hdnea=x', 'https://localhost/media/a.mp3?hdnea=x',
+                    'https://cdnt-stream.dzcdn.net.evil.test/media/a.mp3?hdnea=x', 'https://user@cdnt-stream.dzcdn.net/media/a.mp3?hdnea=x',
+                    'https://cdnt-stream.dzcdn.net:8443/media/a.mp3?hdnea=x', 'https://cdnt-stream.dzcdn.net/private?hdnea=x']:
+            self.assertEqual(self.post('/api/media', {'url': bad}).status_code, 400)
+        self.assertEqual(self.post('/api/media', {'url': url, 'range': 'bytes=0-1,2-3'}).status_code, 400)
+        self.assertEqual(self.media_calls, [])
+        response = self.post('/api/media', {'url': url, 'range': 'bytes=0-2'})
+        self.assertEqual(response.status_code, 206)
+        self.assertEqual(response.data, b'abc')
+        self.assertEqual(response.headers['Content-Range'], 'bytes 0-2/100')
+        self.assertEqual(len(self.media_calls), 1)
 
     def transport(self, url, payload, headers):
         self.calls.append((url, payload, headers))
@@ -118,7 +139,7 @@ class SampleTests(unittest.TestCase):
 
     def test_session_expiry_and_missing_configuration(self):
         from app import create_app
-        empty = create_app({}, transport=self.transport, now=lambda: self.now, root=self.root).test_client()
+        empty = create_app({}, transport=self.transport, media_transport=self.media_transport, now=lambda: self.now, root=self.root).test_client()
         self.assertFalse(self.session(empty)['configured'])
         self.assertEqual(self.post('/login', client=empty).status_code, 400)
         self.login()

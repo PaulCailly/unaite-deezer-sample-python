@@ -14,7 +14,8 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-from flask import Flask, g, jsonify, redirect, request, send_file
+from media import fetch_media, valid_media
+from flask import Response, Flask, g, jsonify, redirect, request, send_file
 from werkzeug.exceptions import BadRequest, RequestEntityTooLarge
 
 ORIGIN = 'http://localhost:3000'
@@ -81,7 +82,7 @@ class Session:
     lock: threading.RLock = field(default_factory=threading.RLock)
 
 
-def create_app(config=None, *, transport=upstream_transport, now=time.time, root=None):
+def create_app(config=None, *, transport=upstream_transport, media_transport=fetch_media, now=time.time, root=None):
     root = Path(root) if root is not None else Path(__file__).resolve().parent
     settings = os.environ if config is None else config
     client_id = settings.get('DEEZER_CLIENT_ID', '').strip()
@@ -313,6 +314,24 @@ def create_app(config=None, *, transport=upstream_transport, now=time.time, root
                 return jsonify(call(PIPE_URL, body, {'Authorization': 'Bearer ' + session.access}))
             except UpstreamError:
                 return error('upstream_failed', 502)
+
+    @app.post('/api/media')
+    def media():
+        session = g.session
+        with session.lock:
+            failure = ensure_token(session)
+            if failure is not None:
+                return failure
+        body = request.get_json(silent=True)
+        if not isinstance(body, dict) or not valid_media(body.get('url'), body.get('range', '')):
+            return error('invalid_media', 400)
+        try:
+            status, data, headers = media_transport(body['url'], body.get('range', ''))
+            if not active(session):
+                return error('login_required', 401)
+            return Response(data, status=status, headers=headers)
+        except Exception:
+            return error('media_failed', 502)
 
     @app.post('/logout')
     def logout():

@@ -56,7 +56,7 @@ Les jetons sont conservés dans la mémoire du serveur, avec un cookie de sessio
 
 Le serveur renouvelle le jeton trente secondes avant son expiration lors d'un appel protégé, et sérialise les renouvellements par session. Un échec de renouvellement demande une nouvelle connexion. Pour le Player SDK, `/api/token` remet le jeton d'accès au navigateur : l'interface le garde uniquement en mémoire. Aucun jeton de renouvellement n'est envoyé au navigateur.
 
-Les corps entrants sont limités à 64 Kio et les réponses Deezer à 1 Mio. Les appels sortants ont un délai de vingt secondes et refusent les redirections HTTP. Les journaux d'accès sont désactivés pour éviter d'écrire le code OAuth de la callback.
+Les corps entrants sont limités à 64 Kio et les réponses JSON Deezer à 1 Mio. Les appels sortants ont un délai de vingt secondes et refusent les redirections HTTP. Les journaux d'accès sont désactivés pour éviter d'écrire le code OAuth de la callback.
 
 Ce serveur de développement écoute uniquement sur l'interface locale et utilise un seul processus. Pour un hébergement public, il faut adapter HTTPS, les cookies, la configuration des origines/redirections, la persistance partagée des sessions et le serveur HTTP. Ne publiez pas `.env`, `.npmrc`, `node_modules` ou des jetons.
 
@@ -69,3 +69,7 @@ python -m unittest discover -s tests -v
 Les tests ne nécessitent ni compte ni identifiants Deezer et ne contactent pas le réseau. Ils couvrent notamment PKCE, état OAuth et rejeu, expiration et rotation des sessions, CSRF/origine/hôte, isolation des utilisateurs, renouvellement simultané, erreurs GraphQL et limites de taille. Un vrai parcours OAuth et une vraie lecture doivent être vérifiés avec les identifiants et droits de votre équipe.
 
 Flask est fixé à la version [3.1.3](https://pypi.org/project/Flask/3.1.3/).
+
+### Relais audio local
+
+Le relais audio exige une session connectée et le jeton CSRF. Il accepte uniquement les URL HTTPS signées de fichiers MP3 sous `cdnt-stream.dzcdn.net/media/`, conserve les plages `Range`, refuse les redirections et ne transmet aucun cookie ni jeton OAuth au CDN. Chaque réponse est limitée à 32 Mio et le délai réseau à 30 secondes. Les URL signées restent en mémoire ; ne les journalisez pas.
