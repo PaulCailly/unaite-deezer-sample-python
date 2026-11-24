@@ -4,6 +4,8 @@ Une application locale pour démarrer votre prototype : connexion Deezer avec OA
 
 ## Démarrer
 
+Récupérez vos identifiants dans [Mes accès équipe](https://unaite.deezer.events/redeem) avec le code privé remis par le staff. Vous pouvez télécharger un `.env` prêt à placer à la racine du kit ; dans ce cas, ignorez la commande `cp` ci-dessous pour ne pas l’écraser.
+
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
@@ -77,3 +79,9 @@ Flask est fixé à la version [3.1.3](https://pypi.org/project/Flask/3.1.3/).
 ### Relais audio local
 
 Le relais audio exige une session connectée et le jeton CSRF. Il accepte uniquement les URL HTTPS signées de fichiers MP3 sous `cdnt-stream.dzcdn.net/media/`, conserve les plages `Range`, refuse les redirections et ne transmet aucun cookie ni jeton OAuth au CDN. Chaque réponse est limitée à 32 Mio et le délai réseau à 30 secondes. Les URL signées restent en mémoire ; ne les journalisez pas.
+
+## GraphQL Playground
+
+Après la connexion dans la sample app, ouvrez [localhost:3000/playground](http://localhost:3000/playground). L’éditeur utilise la même session OAuth et le relais local : aucun jeton à copier. Choisissez un exemple (profil, artistes, permissions ou introspection), modifiez la requête et ses variables JSON, puis cliquez sur **Exécuter**. La réponse complète affiche aussi les erreurs GraphQL et le statut HTTP. Une seule opération est prise en charge par requête. L’introspection peut être refusée selon les droits de l’API.
+
+Aucun historique ni résultat n’est enregistré. Les mutations peuvent modifier le compte connecté. Le code public ne contient aucun accès d’équipe. Tests de l’éditeur : `npm run test:playground` (Node 22.18+).

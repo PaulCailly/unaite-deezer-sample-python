@@ -34,6 +34,16 @@ class SampleTests(unittest.TestCase):
                 self.request_seen.set()
         self.client = self.app.test_client()
 
+    def test_playground_assets_are_reachable_without_exposing_private_files(self):
+        for name in ['playground.html', 'playground.mjs', 'playground.css']:
+            (self.root / 'public' / name).write_text('playground test fixture')
+        for path in ['/playground', '/playground.mjs', '/playground.css']:
+            response = self.client.get(path, base_url=ORIGIN)
+            self.assertEqual(response.status_code, 200, path)
+            self.assertIn('no-store', response.headers['Cache-Control'])
+            response.close()
+        self.assertEqual(self.client.get('/.env', base_url=ORIGIN).status_code, 404)
+
     def media_transport(self, url, byte_range):
         self.media_calls.append((url, byte_range))
         return 206, b'abc', {'Content-Type': 'audio/mpeg', 'Content-Range': 'bytes 0-2/100'}
