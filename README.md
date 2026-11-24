@@ -4,6 +4,8 @@ Une application locale pour démarrer votre prototype : connexion Deezer avec OA
 
 ## Démarrer
 
+Récupérez vos identifiants dans [Mes accès équipe](https://unaite.deezer.events/redeem) avec le code privé remis par le staff. Vous pouvez télécharger un `.env` prêt à placer à la racine du kit ; dans ce cas, ignorez la commande `cp` ci-dessous pour ne pas l’écraser.
+
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
