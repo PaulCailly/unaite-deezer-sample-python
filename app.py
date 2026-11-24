@@ -222,6 +222,18 @@ def create_app(config=None, *, transport=upstream_transport, media_transport=fet
     def index():
         return send_file(root / 'public/index.html')
 
+    @app.get('/playground')
+    def playground():
+        return send_file(root / 'public/playground.html')
+
+    @app.get('/playground.mjs')
+    def playground_js():
+        return send_file(root / 'public/playground.mjs', mimetype='text/javascript')
+
+    @app.get('/playground.css')
+    def playground_css():
+        return send_file(root / 'public/playground.css', mimetype='text/css')
+
     @app.get('/app.js')
     def javascript():
         return send_file(root / 'public/app.js', mimetype='text/javascript')
