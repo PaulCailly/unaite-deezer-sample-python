@@ -60,6 +60,10 @@ Les corps entrants sont limités à 64 Kio et les réponses JSON Deezer à 1 Mio
 
 Ce serveur de développement écoute uniquement sur l'interface locale et utilise un seul processus. Pour un hébergement public, il faut adapter HTTPS, les cookies, la configuration des origines/redirections, la persistance partagée des sessions et le serveur HTTP. Ne publiez pas `.env`, `.npmrc`, `node_modules` ou des jetons.
 
+## Erreur TLS sur macOS
+
+Si Python renvoie `CERTIFICATE_VERIFY_FAILED`, vérifiez les certificats de votre installation Python. Avec l’installateur officiel python.org pour macOS, lancez `Install Certificates.command` dans le dossier `/Applications/Python 3.x/` correspondant à votre version, puis redémarrez le serveur. Conservez la vérification TLS active.
+
 ## Vérifier
 
 ```sh
