@@ -34,6 +34,14 @@ class SampleTests(unittest.TestCase):
                 self.request_seen.set()
         self.client = self.app.test_client()
 
+    def test_first_login_allows_account_redirect_without_wildcard(self):
+        for path in ['/', '/api/session']:
+            response = self.get(path)
+            policy = response.headers['Content-Security-Policy']
+            response.close()
+            form_action = next(d.strip() for d in policy.split(';') if d.strip().startswith('form-action '))
+            self.assertEqual(form_action.split()[1:], ["'self'", 'https://oauth.deezer.com', 'https://account.deezer.com'])
+
     def test_playground_assets_are_reachable_without_exposing_private_files(self):
         for name in ['playground.html', 'playground.mjs', 'playground.css']:
             (self.root / 'public' / name).write_text('playground test fixture')
@@ -283,7 +291,7 @@ class SampleTests(unittest.TestCase):
     def test_csp_allows_local_frontend_and_deezer_media_only(self):
         policy = self.get('/api/session').headers.get('Content-Security-Policy', '')
         for directive in ("script-src 'self'", "style-src 'self'", "frame-ancestors 'none'",
-                          "base-uri 'none'", "form-action 'self' https://oauth.deezer.com",
+                          "base-uri 'none'", "form-action 'self' https://oauth.deezer.com https://account.deezer.com",
                           "connect-src 'self' https://*.deezer.com https://*.dzcdn.net wss://live.deezer.com",
                           "media-src 'self' blob: https://*.deezer.com https://*.dzcdn.net",
                           "worker-src 'self' blob:"):

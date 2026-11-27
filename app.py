@@ -202,7 +202,7 @@ def create_app(config=None, *, transport=upstream_transport, media_transport=fet
             "default-src 'self'; script-src 'self'; style-src 'self'; "
             "connect-src 'self' https://*.deezer.com https://*.dzcdn.net wss://live.deezer.com; "
             "media-src 'self' blob: https://*.deezer.com https://*.dzcdn.net; "
-            "worker-src 'self' blob:; form-action 'self' https://oauth.deezer.com; "
+            "worker-src 'self' blob:; form-action 'self' https://oauth.deezer.com https://account.deezer.com; "
             "frame-ancestors 'none'; base-uri 'none'; object-src 'none'"
         )
         if getattr(g, 'cookie', None):
